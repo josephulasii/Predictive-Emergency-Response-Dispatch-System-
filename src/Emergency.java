@@ -3,14 +3,14 @@ import java.time.LocalDateTime;
 
 public class Emergency {
 
-    private String id;
+    private int id;
     private String location;
     private String type;
     private String priority;
     private String info;
     private LocalDateTime time;
 
-    public Emergency(String id, String location, String type, String priority, String info, LocalDateTime time) {
+    public Emergency(int id, String location, String type, String priority, String info, LocalDateTime time) {
         this.id = id;
         this.location = location;
         this.type = type;
@@ -19,11 +19,11 @@ public class Emergency {
         this.time = time;
     }
 
-    public String getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(int id) {
         this.id = id;
     }
 
