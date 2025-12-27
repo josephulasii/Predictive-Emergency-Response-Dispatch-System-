@@ -1,4 +1,5 @@
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
@@ -197,6 +198,47 @@ public class Main {
         System.out.println("Response Units: 4 (2 Ambulances, 1 Fire Truck, 1 Police Car)");
         System.out.println("Active Emergencies: 0");
         System.out.println("Resolved Emergencies: 1");
-        System.out.println("\nAll systems operational! ✓");
+
+
+
+        System.out.println("\n--- Testing Network Graph ---");
+
+        NetworkGraph network = new NetworkGraph();
+
+        network.addCenter(londonCenter);
+        network.addCenter(manchesterCenter);
+        network.addCenter(birminghamCenter);
+
+        System.out.println("Added 3 centers to network");
+
+        Path londonToManchester = new Path(
+                londonPos,
+                manchesterPos,
+                262.5,
+                180,
+                "Clear"
+        );
+
+        Path londonToBirmingham = new Path(
+                londonPos,
+                birminghamPos,
+                185.0,
+                130,
+                "Clear"
+        );
+
+        network.addPath(londonToManchester);
+        network.addPath(londonToBirmingham);
+
+        System.out.println("Added 2 paths from London");
+
+        List<Path> pathsFromLondon = network.getPathsFrom("DC-LDN-001");
+        System.out.println("Paths from London: " + pathsFromLondon.size());
+
+        List<DispatchCenters> neighbors = network.getNeighbors("DC-LDN-001");
+        System.out.println("London neighbors: " + neighbors.size());
+
+        System.out.println("Network: " + network);
+        System.out.println("\nAll systems operational! ");
     }
 }

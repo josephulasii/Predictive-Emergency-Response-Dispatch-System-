@@ -32,6 +32,14 @@ public class Position {
 
         return Math.sqrt(Math.pow(lat2 - lat1, 2) + Math.pow(lon2 - lon1, 2)) * 111;
     }
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Position position = (Position) obj;
+        return Double.compare(position.latitude, latitude) == 0 &&
+                Double.compare(position.longitude, longitude) == 0;
+    }
 
     @Override
     public String toString() {
