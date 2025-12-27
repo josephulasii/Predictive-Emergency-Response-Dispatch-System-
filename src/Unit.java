@@ -2,15 +2,17 @@ public class Unit {
     private String id;
     private String type;
     private String availability;
-    private String unitLocation;
+    private Position position;
     private int emergencyId;
+    private DispatchCenters homeCenter;
 
-    public Unit(String id, String type, String availability, String unitLocation, int emergencyId) {
+    public Unit(String id, String type, String availability, Position position, int emergencyId, DispatchCenters homeCenter) {
         this.id = id;
         this.type = type;
         this.availability = availability;
-        this.unitLocation = unitLocation;
+        this.position = position;
         this.emergencyId = emergencyId;
+        this.homeCenter = homeCenter;
     }
 
     public String getId() {
@@ -37,12 +39,13 @@ public class Unit {
         this.availability = availability;
     }
 
-    public String getUnitLocation() {
-        return unitLocation;
+
+    public Position getPosition() {
+        return position;
     }
 
-    public void setUnitLocation(String unitLocation) {
-        this.unitLocation = unitLocation;
+    public void setPosition(Position position) {
+        this.position = position;
     }
 
     public int getEmergencyId() {
@@ -53,14 +56,23 @@ public class Unit {
         this.emergencyId = emergencyId;
     }
 
+    public DispatchCenters getHomeCenter() {
+        return homeCenter;
+    }
+
+    public void setHomeCenter(DispatchCenters homeCenter) {
+        this.homeCenter = homeCenter;
+    }
+
     @Override
     public String toString() {
         return "Unit{" +
-                "id = '" + id + '\'' +
-                ", type = '" + type + '\'' +
-                ", availability ='"  + availability + '\'' +
-                ", unitLocation = '"  + unitLocation + '\'' +
-                ", emergencyId = " + emergencyId +
+                "id='" + id + '\'' +
+                ", type='" + type + '\'' +
+                ", availability='" + availability + '\'' +
+                ", position=" + position +
+                ", emergencyId=" + emergencyId +
+                ", homeCenter=" + homeCenter +
                 '}';
     }
 }

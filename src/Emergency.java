@@ -4,15 +4,15 @@ import java.time.LocalDateTime;
 public class Emergency {
 
     private int id;
-    private String location;
+    private Position position;
     private String type;
     private String priority;
     private String info;
     private LocalDateTime time;
 
-    public Emergency(int id, String location, String type, String priority, String info, LocalDateTime time) {
+    public Emergency(int id, Position position, String type, String priority, String info, LocalDateTime time) {
         this.id = id;
-        this.location = location;
+        this.position = position;
         this.type = type;
         this.priority = priority;
         this.info = info;
@@ -27,12 +27,12 @@ public class Emergency {
         this.id = id;
     }
 
-    public String getLocation() {
-        return location;
+    public Position getPosition() {
+        return position;
     }
 
-    public void setLocation(String location) {
-        this.location = location;
+    public void setPosition(Position position) {
+        this.position = position;
     }
 
     public String getType() {
@@ -69,13 +69,13 @@ public class Emergency {
 
     @Override
     public String toString() {
-        return "Emergency {" +
-                "id = '" + id + '\'' +
-                ", location = '" + location + '\'' +
-                ", type = '" + type + '\'' +
-                ", priority = '" + priority + '\'' +
-                ", info = '" + info + '\'' +
-                ", time = " + time +
+        return "Emergency{" +
+                "id=" + id +
+                ", position=" + position +
+                ", type='" + type + '\'' +
+                ", priority='" + priority + '\'' +
+                ", info='" + info + '\'' +
+                ", time=" + time +
                 '}';
     }
 }
