@@ -239,6 +239,21 @@ public class Main {
         System.out.println("London neighbors: " + neighbors.size());
 
         System.out.println("Network: " + network);
+
+
+        System.out.println("\n--- Testing Navigator ---");
+
+        Navigator nav = new Navigator(network);
+
+        Path result = nav.findShortestPath("DC-LDN-001", "DC-MAN-002");
+
+        if (result != null) {
+            System.out.println("Shortest path London to Manchester:");
+            System.out.println("Distance: " + result.getDistance() + " km");
+            System.out.println("Time: " + result.getTimeTaken() + " minutes");
+        } else {
+            System.out.println("No path found");
+        }
         System.out.println("\nAll systems operational! ");
     }
 }
