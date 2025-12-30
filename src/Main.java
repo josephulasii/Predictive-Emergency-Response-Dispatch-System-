@@ -1,5 +1,6 @@
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) {
@@ -253,6 +254,55 @@ public class Main {
             System.out.println("Time: " + result.getTimeTaken() + " minutes");
         } else {
             System.out.println("No path found");
+        }
+
+
+
+        System.out.println("\n--- Testing EmergencyQueue ---");
+
+        EmergencyQueue eq = new EmergencyQueue();
+
+        eq.addEmergency(emergency1);
+        eq.addEmergency(emergency2);
+
+        Emergency e3 = new Emergency(
+                3,
+                londonPos,
+                EmergencyType.policeEmergency,
+                PriorityType.LOW,
+                "Minor theft",
+                LocalDateTime.now()
+        );
+        eq.addEmergency(e3);
+
+        System.out.println("Queue size: " + eq.size());
+
+        System.out.println("Processing in priority order:");
+        while (!eq.isEmpty()) {
+            Emergency e = eq.getNext();
+            System.out.println("  - " + e.getPriority() + ": " + e.getInfo());
+        }
+
+        System.out.println("\n--- Testing Dispatcher ---");
+
+        List<Unit> allUnits = new ArrayList<>();
+        allUnits.add(ambulance1);
+        allUnits.add(ambulance2);
+        allUnits.add(fireTruck1);
+        allUnits.add(policeCar1);
+
+        Dispatcher dispatcher = new Dispatcher(network, allUnits);
+
+        System.out.println("Available units: " + dispatcher.getAvailableUnits().size());
+
+        boolean dispatched = dispatcher.dispatchToEmergency(emergency1);
+
+        if (dispatched) {
+            System.out.println("Unit dispatched successfully!");
+            System.out.println("Available units: " + dispatcher.getAvailableUnits().size());
+            System.out.println("Dispatched units: " + dispatcher.getDispatchedUnits().size());
+        } else {
+            System.out.println("No units available!");
         }
         System.out.println("\nAll systems operational! ");
     }
