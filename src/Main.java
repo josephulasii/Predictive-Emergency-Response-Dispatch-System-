@@ -88,7 +88,7 @@ public class Main {
         System.out.println(ambulance2);
 
 
-        System.out.println("\n--- Emergency incidents reported ---");
+        System.out.println("\n--- Emergency incidents ---");
 
         Position emergencyPos1 = new Position(53.4808, -2.2426);
         Emergency emergency1 = new Emergency(
@@ -110,107 +110,17 @@ public class Main {
                 LocalDateTime.now()
         );
 
-        System.out.println("CRITICAL: " + emergency1);
-        System.out.println("HIGH: " + emergency2);
-
-
-        System.out.println("\n--- Calculating distances to emergencies ---");
-
-        double londonToManchesterEmergency = londonPos.distanceTo(emergencyPos1);
-        double manchesterToManchesterEmergency = manchesterPos.distanceTo(emergencyPos1);
-        double birminghamToManchesterEmergency = birminghamPos.distanceTo(emergencyPos1);
-
-        System.out.println("Emergency 1 (Manchester):");
-        System.out.println("  - Distance from London Center: " +
-                String.format("%.2f km", londonToManchesterEmergency));
-        System.out.println("  - Distance from Manchester Center: " +
-                String.format("%.2f km", manchesterToManchesterEmergency));
-        System.out.println("  - Distance from Birmingham Center: " +
-                String.format("%.2f km", birminghamToManchesterEmergency));
-
-
-        System.out.println("\n--- Finding closest available unit for Emergency 1 ---");
-
-        double ambulance1Distance = ambulance1.getPosition().distanceTo(emergencyPos1);
-        double ambulance2Distance = ambulance2.getPosition().distanceTo(emergencyPos1);
-        double fireTruck1Distance = fireTruck1.getPosition().distanceTo(emergencyPos1);
-
-        System.out.println("Unit distances to emergency:");
-        System.out.println("  - Ambulance 1 (London): " + String.format("%.2f km", ambulance1Distance));
-        System.out.println("  - Ambulance 2 (Manchester): " + String.format("%.2f km", ambulance2Distance));
-        System.out.println("  - Fire Truck 1 (Manchester): " + String.format("%.2f km", fireTruck1Distance));
-
-        System.out.println("\nClosest available ambulance: Ambulance 2 (" +
-                String.format("%.2f km", ambulance2Distance) + ")");
-
-
-        System.out.println("\n--- Dispatching unit to emergency ---");
-
-        System.out.println("BEFORE dispatch:");
-        System.out.println("  Ambulance2 status: " + ambulance2.getAvailability());
-        System.out.println("  Ambulance2 position: " + ambulance2.getPosition());
-        System.out.println("  Ambulance2 assigned emergency: " + ambulance2.getEmergencyId());
-
-        ambulance2.setAvailability(UnitAvailability.DISPATCHED);
-        ambulance2.setEmergencyId(emergency1.getId());
-
-        System.out.println("\nAFTER dispatch:");
-        System.out.println("  Ambulance2 status: " + ambulance2.getAvailability());
-        System.out.println("  Ambulance2 position: " + ambulance2.getPosition());
-        System.out.println("  Ambulance2 assigned emergency: " + ambulance2.getEmergencyId());
-
-
-        System.out.println("\n--- Creating route for dispatched unit ---");
-
-        Path route = new Path(
-                ambulance2.getPosition(),
-                emergencyPos1,
-                ambulance2Distance,
-                5,
-                "Clear"
+        Emergency e3 = new Emergency(
+                3,
+                birminghamPos,
+                EmergencyType.policeEmergency,
+                PriorityType.LOW,
+                "Minor incident",
+                LocalDateTime.now()
         );
 
-        System.out.println(route);
-        System.out.println("ETA: " + route.getTimeTaken() + " minutes");
 
-
-        System.out.println("\n--- Simulating traffic delay ---");
-
-        System.out.println("Traffic reported on route!");
-        route.setRoadCondition("Congested");
-        route.setTimeTaken(15);
-
-        System.out.println("Updated route: " + route);
-        System.out.println("New ETA: " + route.getTimeTaken() + " minutes");
-
-
-        System.out.println("\n--- Emergency resolved ---");
-
-        ambulance2.setAvailability(UnitAvailability.AVAILABLE);
-        ambulance2.setEmergencyId(0);
-        ambulance2.setPosition(manchesterPos);
-
-        System.out.println("Unit returned to base:");
-        System.out.println(ambulance2);
-
-
-        System.out.println("\n=== System Summary ===");
-        System.out.println("Dispatch Centers: 3 (London, Manchester, Birmingham)");
-        System.out.println("Response Units: 4 (2 Ambulances, 1 Fire Truck, 1 Police Car)");
-        System.out.println("Active Emergencies: 0");
-        System.out.println("Resolved Emergencies: 1");
-
-
-
-        System.out.println("\n--- Testing Network Graph ---");
-
-        NetworkGraph network = new NetworkGraph();
-
-        network.addCenter(londonCenter);
-        network.addCenter(manchesterCenter);
-        network.addCenter(birminghamCenter);
-
-        System.out.println("Added 3 centers to network");
+        System.out.println("\n--- Testing Complete PERDS System ---");
 
         Path londonToManchester = new Path(
                 londonPos,
@@ -228,82 +138,28 @@ public class Main {
                 "Clear"
         );
 
-        network.addPath(londonToManchester);
-        network.addPath(londonToBirmingham);
+        PERDS system = new PERDS();
 
-        System.out.println("Added 2 paths from London");
+        system.addCenter(londonCenter);
+        system.addCenter(manchesterCenter);
+        system.addCenter(birminghamCenter);
 
-        List<Path> pathsFromLondon = network.getPathsFrom("DC-LDN-001");
-        System.out.println("Paths from London: " + pathsFromLondon.size());
+        system.addPath(londonToManchester);
+        system.addPath(londonToBirmingham);
 
-        List<DispatchCenters> neighbors = network.getNeighbors("DC-LDN-001");
-        System.out.println("London neighbors: " + neighbors.size());
+        system.addUnit(ambulance1);
+        system.addUnit(ambulance2);
+        system.addUnit(fireTruck1);
+        system.addUnit(policeCar1);
 
-        System.out.println("Network: " + network);
+        system.reportEmergency(emergency1);
+        system.reportEmergency(emergency2);
+        system.reportEmergency(e3);
 
+        system.processEmergencies();
 
-        System.out.println("\n--- Testing Navigator ---");
+        System.out.println(system.getSystemStatus());
 
-        Navigator nav = new Navigator(network);
-
-        Path result = nav.findShortestPath("DC-LDN-001", "DC-MAN-002");
-
-        if (result != null) {
-            System.out.println("Shortest path London to Manchester:");
-            System.out.println("Distance: " + result.getDistance() + " km");
-            System.out.println("Time: " + result.getTimeTaken() + " minutes");
-        } else {
-            System.out.println("No path found");
-        }
-
-
-
-        System.out.println("\n--- Testing EmergencyQueue ---");
-
-        EmergencyQueue eq = new EmergencyQueue();
-
-        eq.addEmergency(emergency1);
-        eq.addEmergency(emergency2);
-
-        Emergency e3 = new Emergency(
-                3,
-                londonPos,
-                EmergencyType.policeEmergency,
-                PriorityType.LOW,
-                "Minor theft",
-                LocalDateTime.now()
-        );
-        eq.addEmergency(e3);
-
-        System.out.println("Queue size: " + eq.size());
-
-        System.out.println("Processing in priority order:");
-        while (!eq.isEmpty()) {
-            Emergency e = eq.getNext();
-            System.out.println("  - " + e.getPriority() + ": " + e.getInfo());
-        }
-
-        System.out.println("\n--- Testing Dispatcher ---");
-
-        List<Unit> allUnits = new ArrayList<>();
-        allUnits.add(ambulance1);
-        allUnits.add(ambulance2);
-        allUnits.add(fireTruck1);
-        allUnits.add(policeCar1);
-
-        Dispatcher dispatcher = new Dispatcher(network, allUnits);
-
-        System.out.println("Available units: " + dispatcher.getAvailableUnits().size());
-
-        boolean dispatched = dispatcher.dispatchToEmergency(emergency1);
-
-        if (dispatched) {
-            System.out.println("Unit dispatched successfully!");
-            System.out.println("Available units: " + dispatcher.getAvailableUnits().size());
-            System.out.println("Dispatched units: " + dispatcher.getDispatchedUnits().size());
-        } else {
-            System.out.println("No units available!");
-        }
-        System.out.println("\nAll systems operational! ");
+        System.out.println("\nAll systems operational!");
     }
 }
