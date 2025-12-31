@@ -6,6 +6,7 @@ public class PERDS {
     private NetworkGraph network;
     private EmergencyQueue queue;
     private Dispatcher dispatcher;
+    private Predictor predictor;
     private List<Unit> units;
     private List<Emergency> processed;
 
@@ -15,6 +16,7 @@ public class PERDS {
         this.units = new ArrayList<>();
         this.processed = new ArrayList<>();
         this.dispatcher = new Dispatcher(network, units);
+        this.predictor = new Predictor();
     }
 
     public void addCenter(DispatchCenters center) {
@@ -31,6 +33,7 @@ public class PERDS {
 
     public void reportEmergency(Emergency emergency) {
         queue.addEmergency(emergency);
+        predictor.recordEmergency(emergency);
         System.out.println("Emergency reported: " + emergency.getPriority() + " - " + emergency.getInfo());
     }
 
@@ -54,6 +57,8 @@ public class PERDS {
                 break;
             }
         }
+
+        System.out.println(predictor.getPredictionReport());
     }
 
     public String getSystemStatus() {
@@ -66,6 +71,10 @@ public class PERDS {
         status.append("Pending Emergencies: ").append(queue.size()).append("\n");
         status.append("Processed Emergencies: ").append(processed.size()).append("\n");
         return status.toString();
+    }
+
+    public String getPredictionReport() {
+        return predictor.getPredictionReport();
     }
 
     public List<Unit> getAvailableUnits() {
