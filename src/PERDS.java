@@ -7,6 +7,7 @@ public class PERDS {
     private EmergencyQueue queue;
     private Dispatcher dispatcher;
     private Predictor predictor;
+    private Visualiser visualiser;
     private List<Unit> units;
     private List<Emergency> processed;
 
@@ -17,6 +18,7 @@ public class PERDS {
         this.processed = new ArrayList<>();
         this.dispatcher = new Dispatcher(network, units);
         this.predictor = new Predictor();
+        this.visualiser = new Visualiser();
     }
 
     public void addCenter(DispatchCenters center) {
@@ -46,19 +48,30 @@ public class PERDS {
             System.out.println("\nHandling: " + emergency.getPriority() + " emergency");
             System.out.println("Location: " + emergency.getPosition());
 
-            boolean success = dispatcher.dispatchToEmergency(emergency);
+            Unit assignedUnit = dispatcher.findClosestAvailableUnit(emergency.getPosition());
 
-            if (success) {
-                processed.add(emergency);
-                System.out.println("Unit dispatched successfully!");
-            } else {
+            if (assignedUnit == null) {
                 System.out.println("No available units - emergency queued");
                 queue.addEmergency(emergency);
                 break;
             }
+
+            double distance = assignedUnit.getPosition().distanceTo(emergency.getPosition());
+            int responseTime = (int)(distance / 1.5);
+
+            boolean success = dispatcher.dispatchToEmergency(emergency);
+
+            if (success) {
+                processed.add(emergency);
+                visualiser.recordDispatch(emergency, assignedUnit, distance, responseTime);
+                System.out.println("Unit " + assignedUnit.getId() + " dispatched successfully!");
+                System.out.println("Distance: " + String.format("%.2f km", distance) +
+                        " | ETA: " + responseTime + " mins");
+            }
         }
 
         System.out.println(predictor.getPredictionReport());
+        System.out.println(visualiser.generateReport());
     }
 
     public String getSystemStatus() {
@@ -75,6 +88,10 @@ public class PERDS {
 
     public String getPredictionReport() {
         return predictor.getPredictionReport();
+    }
+
+    public String getVisualisationReport() {
+        return visualiser.generateReport();
     }
 
     public List<Unit> getAvailableUnits() {
