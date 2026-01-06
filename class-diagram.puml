@@ -1,0 +1,261 @@
+@startuml PERDS_Class_Diagram
+
+!define PRIMARY #E3F2FD
+!define SECONDARY #FFF3E0
+!define TERTIARY #F3E5F5
+!define DATA #E8F5E9
+
+title PERDS System - Class Diagram
+
+package "Core System" <<Rectangle>> {
+    class PERDS SECONDARY {
+        - network: NetworkGraph
+        - queue: EmergencyQueue
+        - dispatcher: Dispatcher
+        - predictor: Predictor
+        - units: List<Unit>
+        - processed: List<Emergency>
+        --
+        + PERDS()
+        + addCenter(center: DispatchCenters): void
+        + addPath(path: Path): void
+        + addUnit(unit: Unit): void
+        + reportEmergency(emergency: Emergency): void
+        + processEmergencies(): void
+        + getSystemStatus(): String
+        + getPredictionReport(): String
+    }
+}
+
+package "Network Management" <<Rectangle>> {
+    class NetworkGraph PRIMARY {
+        - centers: HashMap<String, DispatchCenters>
+        - paths: HashMap<String, List<Path>>
+        --
+        + NetworkGraph()
+        + addCenter(center: DispatchCenters): void
+        + removeCenter(centerId: String): void
+        + addPath(path: Path): void
+        + removePath(startId: String, endId: String): void
+        + getCenter(centerId: String): DispatchCenters
+        + getAllCenters(): List<DispatchCenters>
+        + getPathsFrom(centerId: String): List<Path>
+        + getNeighbors(centerId: String): List<DispatchCenters>
+    }
+
+    class Navigator PRIMARY {
+        - network: NetworkGraph
+        --
+        + Navigator(network: NetworkGraph)
+        + findShortestPath(startId: String, endId: String): Path
+        - getClosestUnvisited(distances: HashMap, visited: HashSet): String
+        - findCenterId(pos: Position): String
+    }
+}
+
+package "Dispatch Management" <<Rectangle>> {
+    class Dispatcher TERTIARY {
+        - network: NetworkGraph
+        - navigator: Navigator
+        - units: List<Unit>
+        --
+        + Dispatcher(network: NetworkGraph, units: List<Unit>)
+        + dispatchToEmergency(emergency: Emergency): boolean
+        + findClosestAvailableUnit(emergencyPos: Position): Unit
+        + getAvailableUnits(): List<Unit>
+        + getDispatchedUnits(): List<Unit>
+        + calculateRoute(start: Position, end: Position): Path
+    }
+
+    class EmergencyQueue TERTIARY {
+        - queue: PriorityQueue<Emergency>
+        --
+        + EmergencyQueue()
+        + addEmergency(emergency: Emergency): void
+        + getNext(): Emergency
+        + peek(): Emergency
+        + isEmpty(): boolean
+        + size(): int
+        + getAll(): List<Emergency>
+    }
+
+    class EmergencyComparator TERTIARY {
+        + compare(e1: Emergency, e2: Emergency): int
+        - getPriorityValue(priority: String): int
+    }
+}
+
+package "Predictive Analytics" <<Rectangle>> {
+    class Predictor #FFE082 {
+        - history: List<Emergency>
+        - areaCount: HashMap<String, Integer>
+        --
+        + Predictor()
+        + recordEmergency(emergency: Emergency): void
+        + getHighDemandAreas(): List<String>
+        + findBestPositionFor(unit: Unit, network: NetworkGraph): String
+        + getPredictionReport(): String
+        + getHistorySize(): int
+        + getEmergencyCount(area: String): int
+    }
+}
+
+package "Data Models" <<Rectangle>> {
+    class DispatchCenters DATA {
+        - id: String
+        - name: String
+        - position: Position
+        - type: String
+        - units: ArrayList<Unit>
+        --
+        + DispatchCenters(id, name, position, type)
+        + distanceToEmergency(emergencyPosition: Position): double
+        + addUnit(unit: Unit): void
+        + getAvailableUnits(): ArrayList<Unit>
+        {All getters and setters}
+    }
+
+    class Emergency DATA {
+        - id: int
+        - position: Position
+        - type: String
+        - priority: String
+        - info: String
+        - time: LocalDateTime
+        --
+        + Emergency(id, position, type, priority, info, time)
+        {All getters and setters}
+    }
+
+    class Unit DATA {
+        - id: String
+        - type: String
+        - availability: String
+        - position: Position
+        - emergencyId: int
+        - homeCenter: DispatchCenters
+        --
+        + Unit(id, type, availability, position, emergencyId, homeCenter)
+        {All getters and setters}
+    }
+
+    class Position DATA {
+        - latitude: double
+        - longitude: double
+        --
+        + Position(latitude: double, longitude: double)
+        + distanceTo(other: Position): double
+        + equals(obj: Object): boolean
+        {Getters and setters}
+    }
+
+    class Path DATA {
+        - start: Position
+        - end: Position
+        - distance: double
+        - timeTaken: int
+        - roadCondition: String
+        --
+        + Path(start, end, distance, timeTaken, roadCondition)
+        {All getters and setters}
+    }
+}
+
+package "Type Constants" <<Rectangle>> {
+    class EmergencyType <<Constants>> {
+        + {static} medicalEmergency: String
+        + {static} policeEmergency: String
+        + {static} fireEmergency: String
+        + {static} trafficEmergency: String
+        + {static} rescueEmergency: String
+    }
+
+    class PriorityType <<Constants>> {
+        + {static} CRITICAL: String
+        + {static} HIGH: String
+        + {static} MEDIUM: String
+        + {static} LOW: String
+    }
+
+    class UnitType <<Constants>> {
+        + {static} AMBULANCE: String
+        + {static} FIRETRUCK: String
+        + {static} POLICECAR: String
+        + {static} RESCUEHELI: String
+    }
+
+    class UnitAvailability <<Constants>> {
+        + {static} AVAILABLE: String
+        + {static} DISPATCHED: String
+        + {static} BUSY: String
+        + {static} UNAVAILBLE: String
+    }
+}
+
+' Relationships
+PERDS "1" *-- "1" NetworkGraph : composes
+PERDS "1" *-- "1" EmergencyQueue : composes
+PERDS "1" *-- "1" Dispatcher : composes
+PERDS "1" *-- "1" Predictor : composes
+PERDS "1" o-- "*" Unit : manages
+PERDS "1" o-- "*" Emergency : processes
+
+NetworkGraph "1" o-- "*" DispatchCenters : contains
+NetworkGraph "1" o-- "*" Path : contains
+
+Navigator "1" --> "1" NetworkGraph : uses
+Dispatcher "1" --> "1" NetworkGraph : uses
+Dispatcher "1" --> "1" Navigator : uses
+Dispatcher "1" --> "*" Unit : allocates
+
+EmergencyQueue "1" *-- "1" EmergencyComparator : uses
+EmergencyQueue "1" o-- "*" Emergency : queues
+
+Predictor "1" --> "*" Emergency : analyzes
+
+DispatchCenters "1" o-- "*" Unit : houses
+DispatchCenters "1" --> "1" Position : located at
+
+Emergency "1" --> "1" Position : occurs at
+Emergency ..> EmergencyType : uses
+Emergency ..> PriorityType : uses
+
+Unit "1" --> "1" Position : located at
+Unit "1" --> "1" DispatchCenters : based at
+Unit ..> UnitType : uses
+Unit ..> UnitAvailability : uses
+
+Path "1" --> "2" Position : connects
+
+note right of PERDS
+  Main system orchestrator
+  Coordinates all subsystems
+  Entry point for operations
+end note
+
+note right of NetworkGraph
+  Graph representation using
+  adjacency list (HashMap)
+  O(1) center lookup
+  O(V + E) space complexity
+end note
+
+note right of Navigator
+  Implements Dijkstra's algorithm
+  O(V² + E) time complexity
+  Guarantees optimal paths
+end note
+
+note bottom of EmergencyQueue
+  Priority queue using heap
+  O(log n) insertion/extraction
+  Ensures critical emergencies first
+end note
+
+note right of Predictor
+  Frequency-based prediction
+  O(1) recording, O(k) analysis
+  Identifies high-demand areas
+end note
+
+@enduml

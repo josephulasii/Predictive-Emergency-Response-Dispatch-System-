@@ -1,0 +1,117 @@
+@startuml PERDS_Architecture_Diagram
+
+!define COMPONENT #4FC3F7
+!define INTERFACE #81C784
+!define DATABASE #FFB74D
+
+title PERDS System - Architecture Diagram
+
+skinparam component {
+    BackgroundColor COMPONENT
+    BorderColor #01579B
+    FontSize 12
+}
+
+skinparam interface {
+    BackgroundColor INTERFACE
+    BorderColor #2E7D32
+}
+
+package "PERDS Core System" {
+    component [PERDS Controller] as PERDS #FFA726 {
+        portin in1
+        portout out1
+    }
+}
+
+package "Emergency Management Layer" {
+    component [EmergencyQueue\nPriority Management] as Queue #64B5F6
+    component [Predictor\nAnalytics Engine] as Predictor #FFD54F
+}
+
+package "Dispatch Layer" {
+    component [Dispatcher\nUnit Coordinator] as Dispatcher #81C784
+    component [Navigator\nPathfinding Engine] as Navigator #AED581
+}
+
+package "Network Layer" {
+    component [NetworkGraph\nGraph Repository] as Network #90CAF9
+}
+
+package "Data Models" {
+    database "Emergency\nData" as EmergencyDB DATABASE
+    database "Unit\nData" as UnitDB DATABASE
+    database "Center\nData" as CenterDB DATABASE
+    database "Path\nData" as PathDB DATABASE
+}
+
+package "External Interfaces" {
+    interface "Emergency\nReporting API" as API1 INTERFACE
+    interface "Status\nMonitoring API" as API2 INTERFACE
+    interface "Prediction\nAPI" as API3 INTERFACE
+}
+
+' Connections
+API1 --> PERDS : reportEmergency()
+PERDS --> API2 : getSystemStatus()
+PERDS --> API3 : getPredictionReport()
+
+PERDS --> Queue : addEmergency()
+PERDS --> Dispatcher : dispatchToEmergency()
+PERDS --> Predictor : recordEmergency()
+PERDS --> Network : addCenter/addPath()
+
+Queue --> EmergencyDB : store/retrieve
+
+Dispatcher --> Navigator : calculateRoute()
+Dispatcher --> UnitDB : findClosest()
+Dispatcher --> Network : query centers
+
+Navigator --> Network : findShortestPath()
+
+Predictor --> EmergencyDB : analyze history
+
+Network --> CenterDB : manage centers
+Network --> PathDB : manage paths
+
+note right of PERDS
+  **Central Orchestrator**
+  • Integrates all subsystems
+  • Manages workflow
+  • Provides unified interface
+  • O(1) component access
+end note
+
+note bottom of Queue
+  **Priority Queue**
+  • Heap-based structure
+  • O(log n) operations
+  • Critical-first ordering
+  • Dynamic priority handling
+end note
+
+note bottom of Navigator
+  **Dijkstra's Algorithm**
+  • O(V² + E) complexity
+  • Optimal path guarantee
+  • Dynamic recalculation
+  • Distance-based routing
+end note
+
+note bottom of Network
+  **Adjacency List Graph**
+  • HashMap storage
+  • O(1) lookup
+  • O(V + E) space
+  • Sparse graph optimized
+end note
+
+note bottom of Predictor
+  **Frequency Analysis**
+  • O(1) recording
+  • O(k) hotspot detection
+  • Historical patterns
+  • Proactive positioning
+end note
+
+@enduml

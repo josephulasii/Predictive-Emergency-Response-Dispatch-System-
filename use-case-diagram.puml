@@ -1,0 +1,131 @@
+@startuml PERDS_UseCase_Diagram
+
+title PERDS System - Use Case Diagram
+
+left to right direction
+
+actor "Emergency\nDispatcher" as Dispatcher
+actor "System\nAdministrator" as Admin
+actor "Analytics\nTeam" as Analytics
+actor "Emergency\nCaller" as Caller
+
+rectangle "PERDS System" {
+
+    package "Emergency Management" {
+        usecase "Report Emergency" as UC1
+        usecase "Process Emergency\nQueue" as UC2
+        usecase "Assign Priority\nLevel" as UC3
+        usecase "Track Emergency\nStatus" as UC4
+    }
+
+    package "Unit Dispatch" {
+        usecase "Find Closest\nAvailable Unit" as UC5
+        usecase "Calculate Optimal\nRoute" as UC6
+        usecase "Dispatch Unit to\nEmergency" as UC7
+        usecase "Update Unit\nAvailability" as UC8
+        usecase "Monitor Unit\nStatus" as UC9
+    }
+
+    package "Network Management" {
+        usecase "Add Dispatch\nCenter" as UC10
+        usecase "Add Route/Path" as UC11
+        usecase "Update Route\nConditions" as UC12
+        usecase "Remove Center\nor Path" as UC13
+    }
+
+    package "Predictive Analytics" {
+        usecase "Record Emergency\nHistory" as UC14
+        usecase "Identify High-Demand\nAreas" as UC15
+        usecase "Generate Prediction\nReport" as UC16
+        usecase "Recommend Unit\nPositioning" as UC17
+    }
+
+    package "System Monitoring" {
+        usecase "View System\nStatus" as UC18
+        usecase "Generate Performance\nMetrics" as UC19
+        usecase "Monitor Response\nTimes" as UC20
+    }
+}
+
+' Caller relationships
+Caller --> UC1
+
+' Dispatcher relationships
+Dispatcher --> UC2
+Dispatcher --> UC3
+Dispatcher --> UC4
+Dispatcher --> UC5
+Dispatcher --> UC7
+Dispatcher --> UC9
+Dispatcher --> UC18
+
+' Admin relationships
+Admin --> UC10
+Admin --> UC11
+Admin --> UC12
+Admin --> UC13
+Admin --> UC8
+Admin --> UC18
+Admin --> UC19
+
+' Analytics relationships
+Analytics --> UC14
+Analytics --> UC15
+Analytics --> UC16
+Analytics --> UC17
+Analytics --> UC20
+
+' Use case dependencies
+UC1 ..> UC3 : <<include>>
+UC2 ..> UC3 : <<include>>
+UC2 ..> UC5 : <<include>>
+UC7 ..> UC5 : <<include>>
+UC7 ..> UC6 : <<include>>
+UC7 ..> UC8 : <<include>>
+
+UC6 ..> UC11 : <<uses>>
+UC5 ..> UC9 : <<uses>>
+
+UC14 ..> UC1 : <<triggered by>>
+UC15 ..> UC14 : <<include>>
+UC16 ..> UC15 : <<include>>
+UC17 ..> UC15 : <<include>>
+
+UC18 ..> UC4 : <<include>>
+UC18 ..> UC9 : <<include>>
+UC19 ..> UC18 : <<include>>
+UC20 ..> UC7 : <<monitors>>
+
+note right of UC2
+  **Priority-based Processing**
+  Uses PriorityQueue to ensure
+  critical emergencies are
+  handled first
+  Complexity: O(log n)
+end note
+
+note right of UC6
+  **Dijkstra's Algorithm**
+  Calculates shortest path
+  between dispatch center
+  and emergency location
+  Complexity: O(V² + E)
+end note
+
+note bottom of UC15
+  **Frequency Analysis**
+  Analyzes historical data to
+  identify geographic patterns
+  Threshold: ≥2 incidents
+  Complexity: O(k)
+end note
+
+note right of UC10
+  **Dynamic Network**
+  Supports runtime addition
+  of new centers and paths
+  Graph uses adjacency list
+  Complexity: O(1)
+end note
+
+@enduml

@@ -1,0 +1,140 @@
+@startuml PERDS_Sequence_Diagram
+
+title Emergency Processing Sequence - PERDS System
+
+actor "Emergency\nCaller" as Caller
+participant "PERDS\nController" as PERDS
+participant "EmergencyQueue" as Queue
+participant "Predictor" as Predictor
+participant "Dispatcher" as Dispatcher
+participant "Navigator" as Navigator
+participant "NetworkGraph" as Network
+participant "Unit" as Unit
+
+autonumber
+
+== Emergency Reporting Phase ==
+
+Caller -> PERDS : reportEmergency(emergency)
+activate PERDS
+
+PERDS -> Queue : addEmergency(emergency)
+activate Queue
+Queue -> Queue : Insert into PriorityQueue\n[O(log n)]
+Queue --> PERDS : success
+deactivate Queue
+
+PERDS -> Predictor : recordEmergency(emergency)
+activate Predictor
+Predictor -> Predictor : Update area frequency\n[O(1)]
+Predictor --> PERDS : recorded
+deactivate Predictor
+
+PERDS --> Caller : Emergency reported
+deactivate PERDS
+
+== Emergency Processing Phase ==
+
+PERDS -> PERDS : processEmergencies()
+activate PERDS
+
+PERDS -> Queue : getNext()
+activate Queue
+Queue -> Queue : Extract max priority\n[O(log n)]
+Queue --> PERDS : emergency (CRITICAL)
+deactivate Queue
+
+PERDS -> Dispatcher : dispatchToEmergency(emergency)
+activate Dispatcher
+
+Dispatcher -> Dispatcher : findClosestAvailableUnit()\n[O(n)]
+activate Dispatcher
+
+loop For each available unit
+    Dispatcher -> Unit : getPosition()
+    activate Unit
+    Unit --> Dispatcher : position
+    deactivate Unit
+
+    Dispatcher -> Dispatcher : Calculate distance\n[O(1)]
+end
+
+Dispatcher --> Dispatcher : closest unit found
+deactivate Dispatcher
+
+Dispatcher -> Navigator : calculateRoute(unitPos, emergencyPos)
+activate Navigator
+
+Navigator -> Network : findShortestPath(startId, endId)
+activate Network
+
+Navigator -> Navigator : Dijkstra's algorithm\n[O(V² + E)]
+
+loop For each unvisited center
+    Navigator -> Network : getPathsFrom(current)
+    Network --> Navigator : paths
+
+    Navigator -> Navigator : Relax edges\nUpdate distances
+end
+
+Network --> Navigator : shortest path
+deactivate Network
+
+Navigator --> Dispatcher : optimal route
+deactivate Navigator
+
+Dispatcher -> Unit : setAvailability(DISPATCHED)
+activate Unit
+Unit --> Dispatcher : updated
+deactivate Unit
+
+Dispatcher -> Unit : setEmergencyId(emergency.id)
+activate Unit
+Unit --> Dispatcher : assigned
+deactivate Unit
+
+Dispatcher --> PERDS : dispatch successful
+deactivate Dispatcher
+
+PERDS -> PERDS : Add to processed list
+deactivate PERDS
+
+== Predictive Analysis Phase ==
+
+PERDS -> Predictor : getPredictionReport()
+activate PERDS
+activate Predictor
+
+Predictor -> Predictor : getHighDemandAreas()\n[O(k)]
+
+loop For each geographic area
+    Predictor -> Predictor : Check frequency count
+    alt frequency >= threshold
+        Predictor -> Predictor : Add to hotspots
+    end
+end
+
+Predictor --> PERDS : Prediction report with\nhigh-demand areas
+deactivate Predictor
+
+PERDS --> Caller : System status +\nPrediction insights
+deactivate PERDS
+
+note over PERDS, Predictor
+  **Key Performance Characteristics:**
+  • Emergency insertion: O(log n)
+  • Unit selection: O(n)
+  • Pathfinding: O(V² + E)
+  • Prediction: O(k)
+  • Total workflow: O(V² + E + n + log n)
+end note
+
+note over Dispatcher, Navigator
+  **Dynamic Adaptation:**
+  New emergencies can be reported
+  during processing without blocking.
+  Units update availability in real-time.
+  Routes recalculated on demand.
+end note
+
+@enduml
